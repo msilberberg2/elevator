@@ -78,8 +78,16 @@ class Elevator < Location
 			below_floors = @buttons[0..current_floor - 1]
 		end
 
+		#The elevator move
+		move(above_floors, below_floors)
 
-		#Logic for movement
+		#Determines the status of the elevator
+		end_floor = @current_floor
+		change_status(start_floor, end_floor)
+	end
+
+	#logic for movement. Determines how the elevators move
+	def move(above_floors, below_floors)
 		#Normally, it will go in the direction determined by its status
 		if status == "up" && current_floor < @floors - 1
 			self.move_up
@@ -94,10 +102,6 @@ class Elevator < Location
 		elsif current_floor != 0
 			self.move_down
 		end
-
-		#Determines the status of the elevator
-		end_floor = @current_floor
-		change_status(start_floor, end_floor)
 	end
 
 	#People who have reached their destination debark from the elevator
