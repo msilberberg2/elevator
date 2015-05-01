@@ -88,20 +88,20 @@ class Elevator < Location
 
 	#logic for movement. Determines how the elevators move
 	def move(above_floors, below_floors)
-		#If there's nobody to pick up, it will return to the bottom
-		if current_floor != 0 && !above_floors.include?(true) && !below_floors.include?(true) && person_queue == []
-			self.move_down
-		#Normally, it will go in the direction determined by its status. If stationary, movement is determined by whether buttons are pressed for the elevator	
-		elsif status == "up" && current_floor < @floors - 1
+		#Normally, it will go in the direction determined by its status
+		if status == "up" && current_floor < @floors - 1
 			self.move_up
 		elsif status == "down" && current_floor > 0
 			self.move_down
+		#If stationary, movement is determined by whether buttons are pressed for the elevator	
 		elsif above_floors.include?(true)
 			self.move_up
 		elsif below_floors.include?(true)
 			self.move_down
-		end
 		#Returns to bottom floor if there is nobody to pick up
+		elsif current_floor != 0
+			self.move_down
+		end
 	end
 
 	#People who have reached their destination debark from the elevator
