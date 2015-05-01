@@ -34,7 +34,7 @@ class Building
 		people = args[:person_hash]
 		place_all(people)
 
-		refresh_buttons
+		
 	end
 
 	#people is a hash of Person object keys. If the value is an integer n, the person is placed on the nth floor
@@ -69,19 +69,11 @@ class Building
 		@floors.count
 	end
 
-	#Returns the bottom floor
-	def elev_resting_floor
-		if @floors != nil
-			return @floors[0]
-		end
-		puts "Error. There are no floors!"
-	end
-
 	#Defines building's behavior during one tick
 	def pass_time
 		#For each elevator
 		@elevators.each do |elev|
-			#Refreshes the buttons before every elevator moves, so that elevator's don't follow already answered calls
+			refresh_buttons
 
 			curr_floor_num = elev.current_floor
 			curr_floor = floors[curr_floor_num]
@@ -94,24 +86,11 @@ class Building
 				curr_floor.arrive
 			end
 
+			
 			#Determines whether people trying to go up or down will get on the elevator
 			#It then sets departures equal to that group of people
-			up_people = curr_floor.going_up
-			down_people = curr_floor.going_down
-			#If an elevator has nobody in it and is on a floor with people, it will try to take as many people as possible in the direction they want
-			if @people == 0 && current_floor.empty? == false
-				if up_people.count > down_people.count
-					elev.set_status("up")
-				else
-					elev.set_status("down")
-				end
-			#Else, it takes whoever is going in the same direction as it
-			elsif elev.status == "down" || curr_floor_num == number_of_floors - 1
-				departures = down_people
-			else
-				departures = up_people
-			end
-
+			departures = prepare_departure(elev,curr_floor)
+			
 			#Check who on the floor is going in the same direction. As many people as possible who are going in the same direction will get on the elevator
 			loop do 
  				break if elev.capacity == elev.person_count || departures.count == 0
@@ -126,11 +105,33 @@ class Building
 		refresh_buttons
 	end
 
+	#Determines whether people trying to go up or down will get on the elevator
+	#It then sets departures equal to that group of people
+	def prepare_departure(elev, curr_floor)
+		up_people = curr_floor.going_up
+		down_people = curr_floor.going_down
+		#If an elevator has nobody in it and is on a floor with people, it will try to take as many people as possible in the direction they want
+		if elev.no_people? && !curr_floor.no_people?
+			if up_people.count > down_people.count
+				elev.set_status("up")
+			else
+				elev.set_status("down")
+			end
+		end
+		#It then takes whoever is going in the same direction as it
+		if elev.status == "down" || curr_floor.number == @floors.count - 1
+			departures = down_people
+		else
+			departures = up_people
+		end
+		return departures
+	end
+
 	#Refreshes the building's buttons after every tick
 	def refresh_buttons
 		@elevators.each do |elev|
 			curr_floor_num = elev.current_floor
-			curr_floor = floors[curr_floor_num]
+			curr_floor = @floors[curr_floor_num]
 			#Only resets the current floor if it appears that the elevator did not pick up the maximum number of people, since that indicates that there are not
 			#people waiting
 			if elev.capacity > elev.person_count

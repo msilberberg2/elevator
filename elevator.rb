@@ -56,11 +56,9 @@ class Elevator < Location
 	end
 
 	def move_up
-		@status = "up"
 		@current_floor = @current_floor + 1
 	end
 	def move_down
-		@status = "down"
 		@current_floor = @current_floor - 1
 	end
 
@@ -82,18 +80,15 @@ class Elevator < Location
 
 
 		#Logic for movement
-		#If there is nobody in the elevator and people on the floor, then it will go in the direction that the majority of those people are going
-		if person_queue == 0 && current_floor.empty? == false
-			if current_floor.going_down_count > current_floor.going_up_count 
-				self.move_down
-			else
-				self.move_up
-			end
-		##Otherwise, movement is determined by whether buttons are pressed for the elevator	
-		#The elevator will continue moving in its current direction as long as buttons are pressed for it in that direction
+		#Normally, it will go in the direction determined by its status
+		if status == "up" && current_floor < @floors - 1
+			self.move_up
+		elsif status == "down" && current_floor > 0
+			self.move_down
+		#If stationary, movement is determined by whether buttons are pressed for the elevator	
 		elsif above_floors.include?(true)
 			self.move_up
-		elsif below_floors.include?(true) && (status == "down")
+		elsif below_floors.include?(true)
 			self.move_down
 		#Returns to bottom floor if there is nobody to pick up
 		elsif current_floor != 0
