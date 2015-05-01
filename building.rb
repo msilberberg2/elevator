@@ -33,6 +33,8 @@ class Building
 		#people is a hash of Person object keys. If the value is an integer n, the person is placed on the nth floor
 		people = args[:person_hash]
 		place_all(people)
+
+		refresh_buttons
 	end
 
 	#people is a hash of Person object keys. If the value is an integer n, the person is placed on the nth floor
@@ -80,49 +82,41 @@ class Building
 		#For each elevator
 		@elevators.each do |elev|
 			#Refreshes the buttons before every elevator moves, so that elevator's don't follow already answered calls
-			refresh_buttons
 
 			curr_floor_num = elev.current_floor
 			curr_floor = floors[curr_floor_num]
 			#building handles transfers of people from floors to elevators and vice versa
 
-			#Check who on the elevator gets off on this stop.
-			arrivers = []
-			elev.person_queue.each do |elev_person|
-				if elev_person.destination == curr_floor_num
-					arrivers.push(elev_person)
-				end 
+			#Number of people debarking
+			num_debarking = elev.debark
+			#For each person that debarks, one person arrive on the floor
+			num_debarking.times do
+				curr_floor.arrive
 			end
 
-			#Once you have a list of people who are getting off, have those people get off
-			arrivers.each do |elev_person|
-				if elev_person.destination == curr_floor_num
-					elev.remove_person(elev_person)
-					curr_floor.arrive
-				end 
-			end
-
-			#Determines which way the elevator is going, and depending on that, determines whether people trying to go up or down will get on the elevator
+			#Determines whether people trying to go up or down will get on the elevator
 			#It then sets departures equal to that group of people
-			if elev.status == "up" || curr_floor_num == 0
-				departures = curr_floor.going_up
+			up_people = curr_floor.going_up
+			down_people = curr_floor.going_down
+			#If an elevator has nobody in it and is on a floor with people, it will try to take as many people as possible in the direction they want
+			if @people == 0 && current_floor.empty? == false
+				if up_people.count > down_people.count
+					elev.set_status("up")
+				else
+					elev.set_status("down")
+				end
+			#Else, it takes whoever is going in the same direction as it
 			elsif elev.status == "down" || curr_floor_num == number_of_floors - 1
-				departures = curr_floor.going_down
-			#If the elevator is stationary, it will take anybody 
+				departures = down_people
 			else
-				departures = curr_floor.going_up.concat(curr_floor.going_down)
+				departures = up_people
 			end
 
 			#Check who on the floor is going in the same direction. As many people as possible who are going in the same direction will get on the elevator
 			loop do 
- 				break if elev.capacity == elev.person_count || curr_floor.no_people?
- 				if departures.count > 0
- 					p = departures.pop
- 					curr_floor.remove_person(p)
- 				else
- 					#If there is room on the elevator, somebody going the opposite direction will also be taken.
- 					p = curr_floor.pop
- 				end
+ 				break if elev.capacity == elev.person_count || departures.count == 0
+ 				p = departures.pop
+ 				curr_floor.remove_person(p)
  				elev.add_person(p)
 			end 
 			
@@ -137,7 +131,7 @@ class Building
 		@elevators.each do |elev|
 			curr_floor_num = elev.current_floor
 			curr_floor = floors[curr_floor_num]
-			#Only resets the current floor if it appears that the elevator did not pick up the maximum number of people, since that indicates that there might still be
+			#Only resets the current floor if it appears that the elevator did not pick up the maximum number of people, since that indicates that there are not
 			#people waiting
 			if elev.capacity > elev.person_count
 				#Turns off the floor buttons for this floor
@@ -145,14 +139,15 @@ class Building
 					curr_floor.reset_button_up
 				elsif elev.status == "down"
 					curr_floor.reset_button_down
-				elsif curr_floor.no_people?
-					curr_floor.reset_button_up
-					curr_floor.reset_button_down
 				end
 			end
+			if curr_floor.no_people?
+				curr_floor.reset_button_up
+				curr_floor.reset_button_down
+			end
+
 			#Turns off the elevator button for this floor
 			elev.reset_button(curr_floor_num)
-
 			#Turns on the floor buttons for all floors with people still waiting.
 			@floors.each do |floor|
 				if floor.up_button_status || floor.down_button_status

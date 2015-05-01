@@ -80,15 +80,10 @@ class Elevator < Location
 			below_floors = @buttons[0..current_floor - 1]
 		end
 
-		
+
 		#Logic for movement
-		#Returns to bottom floor if there is nobody to pick up
-		if @buttons.include?(true) == false
-			if current_floor != 0
-				self.move_down
-			end
 		#If there is nobody in the elevator and people on the floor, then it will go in the direction that the majority of those people are going
-		elsif @people == 0 && current_floor.empty? == false
+		if person_queue == 0 && current_floor.empty? == false
 			if current_floor.going_down_count > current_floor.going_up_count 
 				self.move_down
 			else
@@ -96,29 +91,13 @@ class Elevator < Location
 			end
 		##Otherwise, movement is determined by whether buttons are pressed for the elevator	
 		#The elevator will continue moving in its current direction as long as buttons are pressed for it in that direction
-		elsif above_floors.include?(true) && (status == "up")
+		elsif above_floors.include?(true)
 			self.move_up
 		elsif below_floors.include?(true) && (status == "down")
 			self.move_down
-		#If a direction has not been determined based on previous if/else statements, the elevator goes in the direction of more pushed buttons
-		else
-			above_count = 0
-			below_count = 0
-			above_floors.each do |f|
-				if f == true
-					above_count = above_count + 1
-				end
-			end
-			below_floors.each do |f|
-				if f == true
-					below_count = below_count + 1
-				end
-			end
-			if above_count > below_count
-				self.move_up
-			else
-				self.move_down
-			end
+		#Returns to bottom floor if there is nobody to pick up
+		elsif current_floor != 0
+			self.move_down
 		end
 
 		#Determines the status of the elevator
@@ -126,17 +105,42 @@ class Elevator < Location
 		change_status(start_floor, end_floor)
 	end
 
+	#People who have reached their destination debark from the elevator
+	#Returns the number of people debarking
+	def debark
+		#Check who on the elevator gets off on this stop.
+		arrivers = []
+		person_queue.each do |elev_person|
+			if elev_person.destination == current_floor
+				arrivers.push(elev_person)
+			end 
+		end
+		#Once you have a list of people who are getting off, have those people get off
+		arrivers.each do |elev_person|
+			if elev_person.destination == current_floor
+				remove_person(elev_person)
+			end 
+		end
+		return arrivers.count
+	end
+		
+
 	#Determines whether the elevator's status changes,
 	#based on the difference between its floor at the beginning and end of a tick
 	def change_status(start_floor, end_floor)
 		#Determines whether the elevator's status changes
 		if end_floor > start_floor
-			@status = "up"
+			set_status("up")
 		elsif end_floor < start_floor
-			@status = "down"
+			set_status("down")
 		else end_floor < start_floor
-			@status = "stationary"
+			set_status("stationary")
 		end
+	end
+
+	#Sets @status
+	def set_status(stat)
+		@status = stat
 	end
 
 	#Elev_People stands for number of people in elevator

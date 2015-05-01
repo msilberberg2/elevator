@@ -26,4 +26,12 @@ class Location
 	def capacity
 		@maximum_people
 	end
+
+	#Returns a boolean representing whether there are people here
+	def no_people?
+		if person_queue.count == 0
+			return true
+		end
+		false
+	end
 end

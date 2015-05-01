@@ -2,4 +2,5 @@ README
 
 Elevator Problem
 
-My solution to the algorithm was initially to use a simplistic movement model, where the elevator would pick up people while moving up, drop them off while moving down, and then move to the bottom when completed. However, this did not actually incorporate the buttons at all, so I attempted to incorporate them with more complex algorithms. Unfortunately, I found that my attempts at using more complex algorithms rarely resulted in more efficient movement than the original simplistic algorithm.
+My solution to the algorithm was initially to use a simplistic movement model, where the elevator would pick up people while moving up, drop them off while moving down, and then move to the bottom when completed. However, this did not actually incorporate the buttons at all, so I attempted to incorporate them with more complex algorithms. Unfortunately, I found that my experimentation at using more complex algorithms rarely resulted in more efficient movement than the original simplistic algorithm, oftentimes resulting instrange and error-prone behavior. However, I eventually found one solution that works.
+

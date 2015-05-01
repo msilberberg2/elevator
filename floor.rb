@@ -23,11 +23,6 @@ class Floor < Location
 		@arrived_count = 0
 	end
 
-	#Removes the first person in the array of people on the floor
-	def pop
-		@people.pop
-	end
-
 	#Returns an array of all people going up
 	def going_up
 		up_people = []
@@ -56,14 +51,6 @@ class Floor < Location
 
 	def going_down_count
 		going_down.count
-	end
-
-	#Returns a boolean representing whether there are people on this floor
-	def no_people?
-		if person_queue.count == 0
-			return true
-		end
-		false
 	end
 
 	def up_button_status
